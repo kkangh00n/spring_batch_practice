@@ -1,0 +1,28 @@
+spring:
+  application:
+    name: kill-batch
+
+  batch:
+    # JDBC를 통해 메타데이터 테이블 생성
+    jdbc:
+      initialize-schema: always
+    # 배치 자동 실행 -> false
+    job:
+      enabled: false
+
+  # 데이터 저장용
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/batch_db?useSSL=false&useUnicode=true&serverTimezone=Asia/Seoul&allowPublicKeyRetrieval=true
+    username: root
+    password: 1234
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    defer-datasource-initialization: true
+    open-in-view: false
+    properties:
+      hibernate:
+        show_sql: true
+        format_sql: true
