@@ -23,11 +23,14 @@ public class KillBatchApplication {
         JobRegistry jobRegistry = context.getBean(JobRegistry.class);
 
         try {
+            //JobParameter 생성
             JobParameters jobParameters = new JobParametersBuilder()
-                    .addDate("date", new Date())
+                    .addJobParameter("system.target", "kill-batch", String.class)
+                    .addJobParameter("system.destruction.level", 1L, Long.class)
                     .toJobParameters();
 
-            JobExecution execution = jobLauncher.run(jobRegistry.getJob("zombieCleanupJob"), jobParameters);
+            //특정 Job 실행 -> JobParameter 파라미터 전달
+            JobExecution execution = jobLauncher.run(jobRegistry.getJob("processTerminatorJob"), jobParameters);
 
             System.exit(SpringApplication.exit(context,
                     () -> execution.getStatus() == BatchStatus.COMPLETED ? 0 : 1));
