@@ -25,6 +25,7 @@ public class KillBatchApplication {
         try {
             //JobParameter 생성
             JobParameters jobParameters = new JobParametersBuilder()
+                    .addDate("date", new Date())
                     .addJobParameter("system.target", "kill-batch", String.class)
                     .addJobParameter("system.destruction.level", 1L, Long.class)
                     .toJobParameters();
