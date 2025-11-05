@@ -32,6 +32,13 @@ public class JobScopeTestBatchConfig {
     //Job이 실행될 때 생성
     //Job이 종료할 때 소멸
     //병렬 처리 지원 -> Job 시작 요청으로 다르게 넘어오는 파라미터들이 있을 때, 독립적인 빈을 생성하여 동시성 문제 해결
+
+    /**
+     * 주의사항
+     * Step에는 @JobScope와 @StepScope를 사용 금지
+     * 고로 아래 방식은 권장하지 않음
+     *
+     * */
     @Bean
     @JobScope
     public Step scopeTestStep(
