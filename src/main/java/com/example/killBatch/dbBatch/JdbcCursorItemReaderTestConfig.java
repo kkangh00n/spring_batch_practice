@@ -20,25 +20,25 @@ import org.springframework.transaction.PlatformTransactionManager;
 @Slf4j
 @Configuration
 @RequiredArgsConstructor
-public class VictimRecordConfig {
+public class JdbcCursorItemReaderTestConfig {
 
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
     private final DataSource dataSource;
 
     @Bean
-    public Job processVictimJob() {
-        return new JobBuilder("victimRecordJob", jobRepository)
-                .start(processVictimStep())
+    public Job jdbcCursorItemReaderTestJob() {
+        return new JobBuilder("jdbcCursorItemReaderTestJob", jobRepository)
+                .start(jdbcCursorItemReaderTestStep())
                 .build();
     }
 
     @Bean
-    public Step processVictimStep() {
-        return new StepBuilder("victimRecordStep", jobRepository)
+    public Step jdbcCursorItemReaderTestStep() {
+        return new StepBuilder("jdbcCursorItemReaderTestStep", jobRepository)
                 .<Victim, Victim>chunk(5, transactionManager)
-                .reader(terminatedVictimReader())
-                .writer(victimWriter())
+                .reader(jdbcCursorItemReader())
+                .writer(jdbcCursorItemReaderTestWrite())
                 .build();
     }
 
@@ -71,9 +71,9 @@ public class VictimRecordConfig {
      * 이 때, ORDER BY 정렬이 되어있지 않다면, 동일한 데이터 순서를 보장할 수 없어서 중복처리 혹은 누락될 수 있다
      */
     @Bean
-    public JdbcCursorItemReader<Victim> terminatedVictimReader() {
+    public JdbcCursorItemReader<Victim> jdbcCursorItemReader() {
         return new JdbcCursorItemReaderBuilder<Victim>()
-                .name("terminatedVictimReader")
+                .name("jdbcCursorItemReader")
                 //AutoConfiguration DataSource
                 .dataSource(dataSource)
                 //native sql
@@ -97,7 +97,7 @@ public class VictimRecordConfig {
     }
 
     @Bean
-    public ItemWriter<Victim> victimWriter() {
+    public ItemWriter<Victim> jdbcCursorItemReaderTestWrite() {
         return items -> {
             for (Victim victim : items) {
                 log.info("{}", victim);
