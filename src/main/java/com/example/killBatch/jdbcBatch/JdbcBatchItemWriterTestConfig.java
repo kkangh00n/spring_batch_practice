@@ -1,4 +1,4 @@
-package com.example.killBatch.dbBatch;
+package com.example.killBatch.jdbcBatch;
 
 import java.util.Map;
 import javax.sql.DataSource;

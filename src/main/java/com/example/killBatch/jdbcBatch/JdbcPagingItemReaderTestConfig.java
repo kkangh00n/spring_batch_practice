@@ -1,4 +1,4 @@
-package com.example.killBatch.dbBatch;
+package com.example.killBatch.jdbcBatch;
 
 import java.time.LocalDateTime;
 import java.util.Map;
