@@ -5,10 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import lombok.Builder;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
@@ -101,21 +98,6 @@ public class JpaCursorItemReaderTestConfig {
                     String.format("%.2f", blockedPost.getBlockScore()),
                     blockedPost.getBlockedAt().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
         });
-    }
-
-    /**
-     * 차단된 게시글 - 처형 결과 보고서
-     */
-    @Getter
-    @Builder
-    @ToString
-    public static class BlockedPost {
-        private Long postId;
-        private String writer;
-        private String title;
-        private int reportCount;
-        private double blockScore;
-        private LocalDateTime blockedAt;
     }
 
     @Component
