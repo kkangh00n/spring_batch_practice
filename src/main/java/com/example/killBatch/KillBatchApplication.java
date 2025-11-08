@@ -34,7 +34,7 @@ public class KillBatchApplication {
                     .toJobParameters();
 
             //특정 Job 실행 -> JobParameter 파라미터 전달
-            JobExecution execution = jobLauncher.run(jobRegistry.getJob("jpaCursorItemReaderTestJob"), jobParameters);
+            JobExecution execution = jobLauncher.run(jobRegistry.getJob("jpaPagingItemReaderTestJob"), jobParameters);
 
             System.exit(SpringApplication.exit(context,
                     () -> execution.getStatus() == BatchStatus.COMPLETED ? 0 : 1));
