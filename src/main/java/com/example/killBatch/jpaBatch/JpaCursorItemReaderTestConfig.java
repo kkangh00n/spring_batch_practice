@@ -60,6 +60,8 @@ public class JpaCursorItemReaderTestConfig {
      * 3. Query 객체 - 커서 순회로 실제 데이터를 한 건씩 가져옴
      * 4. hasNext() - 다음 데이터가 존재하는지 여부 확인
      *
+     * 영속성 컨텍스트 생명주기
+     * 준영속 상태 - 데이터를 읽는 즉시 detach
      *
      * JdbcCursorItemReader 공통점 - 동작 및 특징은 JdbcCursorItemReader와 동일
      * 차이점 - DataSource가 아닌 EntityManager를 통해 데이터를 읽어옴

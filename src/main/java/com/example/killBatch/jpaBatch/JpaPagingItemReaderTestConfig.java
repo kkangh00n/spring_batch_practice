@@ -58,6 +58,9 @@ public class JpaPagingItemReaderTestConfig {
      * 1. EntityManagerFactory - EntityManager 생성
      * 2. 메서드 호출마다 새로운 페이징 쿼리를 생성하고 실행
      *
+     * 영속성 컨텍스트 생명주기
+     * 준영속 상태 - 데이터를 읽는 즉시 detach
+     *
      * 쿼리 형식
      * SELECT *
      * FROM victims
