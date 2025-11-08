@@ -43,7 +43,7 @@ public class JdbcCursorItemReaderTestConfig {
     }
 
     /**
-     * JdbcCursorItemReader 동작
+     * JdbcCursorItemReader - 스트리밍 처리
      * 1. sql 전달
      * 2. preparedStatement -> sql 실행
      * 3. resultSet -> 내부 버퍼에 결과 보관
