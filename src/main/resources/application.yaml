@@ -17,7 +17,7 @@ spring:
 
   # postgreSQL
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://localhost:5432/postgres?reWriteBatchedInserts=true
     driver-class-name: org.postgresql.Driver
     username: root
     password: 1234
@@ -31,3 +31,7 @@ spring:
       hibernate:
         show_sql: true
         format_sql: true
+
+logging:
+  level:
+    org.springframework.batch.item.database: DEBUG
