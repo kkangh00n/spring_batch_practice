@@ -14,7 +14,6 @@ import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaCursorItemReader;
 import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
 import org.springframework.batch.item.validator.ValidatingItemProcessor;
-import org.springframework.batch.item.validator.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -62,10 +61,11 @@ public class ItemProcessorTestConfig {
 
     /**
      * ItemProcessor
-     * <p>
+     *
      * 1-2. Validator를 이용한 필터링
      *
      * 2. 데이터 검증을 통한 실패 처리
+     * - Step과 Job 모두 실패
      */
     @Bean
     public ItemProcessor<Post, Post> itemPostNullFilterProcessor(
