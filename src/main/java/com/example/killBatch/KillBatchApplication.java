@@ -29,12 +29,10 @@ public class KillBatchApplication {
                     .addDate("date", new Date())
                     .addJobParameter("system.target", "kill-batch", String.class)
                     .addJobParameter("system.destruction.level", 10L, Long.class)
-                    .addLocalDateTime("startDateTime", LocalDateTime.now().minusDays(1))
-                    .addLocalDateTime("endDateTime", LocalDateTime.now().plusDays(1))
                     .toJobParameters();
 
             //특정 Job 실행 -> JobParameter 파라미터 전달
-            JobExecution execution = jobLauncher.run(jobRegistry.getJob("jpaItemWriterTestJob"), jobParameters);
+            JobExecution execution = jobLauncher.run(jobRegistry.getJob("itemProcessorTestJob"), jobParameters);
 
             System.exit(SpringApplication.exit(context,
                     () -> execution.getStatus() == BatchStatus.COMPLETED ? 0 : 1));
