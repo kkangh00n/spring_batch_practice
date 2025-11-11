@@ -1,4 +1,4 @@
-package com.example.killBatch.ItemProcessor;
+package com.example.killBatch.itemProcessor;
 
 import com.example.killBatch.external.ExternalApiMock;
 import com.example.killBatch.jpaBatch.BlockedPost;

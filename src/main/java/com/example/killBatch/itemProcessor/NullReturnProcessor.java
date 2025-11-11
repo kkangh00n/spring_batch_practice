@@ -1,4 +1,4 @@
-package com.example.killBatch.ItemProcessor;
+package com.example.killBatch.itemProcessor;
 
 import com.example.killBatch.jpaBatch.Post;
 import lombok.extern.slf4j.Slf4j;

@@ -1,4 +1,4 @@
-package com.example.killBatch.ItemProcessor;
+package com.example.killBatch.itemProcessor;
 
 import com.example.killBatch.jpaBatch.BlockedPost;
 import com.example.killBatch.jpaBatch.Post;
