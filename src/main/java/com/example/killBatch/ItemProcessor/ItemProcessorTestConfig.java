@@ -9,9 +9,12 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JpaCursorItemReader;
 import org.springframework.batch.item.database.builder.JpaCursorItemReaderBuilder;
+import org.springframework.batch.item.validator.ValidatingItemProcessor;
+import org.springframework.batch.item.validator.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -35,13 +38,13 @@ public class ItemProcessorTestConfig {
     @Bean
     public Step itemProcessorTestStep(
             JpaCursorItemReader<Post> itemProcessorTestReader,
-            NullReturnProcessor itemProcessor,
+            ItemProcessor<Post, Post> itemPostNullFilterProcessor,
             ItemWriter<Post> itemProcessorTestWriter
     ) {
         return new StepBuilder("itemProcessorTestStep", jobRepository)
                 .<Post, Post>chunk(5, transactionManager)
                 .reader(itemProcessorTestReader)
-                .processor(itemProcessor)
+                .processor(itemPostNullFilterProcessor)
                 .writer(itemProcessorTestWriter)
                 .build();
     }
@@ -57,6 +60,23 @@ public class ItemProcessorTestConfig {
                 .build();
     }
 
+    /**
+     * ItemProcessor
+     * <p>
+     * 1-2. Validator를 이용한 필터링
+     */
+    @Bean
+    public ItemProcessor<Post, Post> itemPostNullFilterProcessor(
+            FilteringValidator filteringValidator
+    ) {
+        //validator 주입
+        ValidatingItemProcessor<Post> validationItemProcessor = new ValidatingItemProcessor<>(
+                filteringValidator);
+        //필터링 수행
+        validationItemProcessor.setFilter(true);
+
+        return validationItemProcessor;
+    }
 
     @Bean
     public ItemWriter<Post> itemProcessorTestWriter() {
