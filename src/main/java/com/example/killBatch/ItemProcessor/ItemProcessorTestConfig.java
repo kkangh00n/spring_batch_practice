@@ -1,5 +1,6 @@
 package com.example.killBatch.ItemProcessor;
 
+import com.example.killBatch.jpaBatch.BlockedPost;
 import com.example.killBatch.jpaBatch.Post;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
@@ -37,13 +38,15 @@ public class ItemProcessorTestConfig {
     @Bean
     public Step itemProcessorTestStep(
             JpaCursorItemReader<Post> itemProcessorTestReader,
-            ItemProcessor<Post, Post> itemPostNullFilterProcessor,
-            ItemWriter<Post> itemProcessorTestWriter
+//            NullReturnProcessor itemProcessor,
+//            ItemProcessor<Post, Post> itemPostNullFilterProcessor,
+            TranslateProcessor itemProcessor,
+            ItemWriter<BlockedPost> itemProcessorTestWriter
     ) {
         return new StepBuilder("itemProcessorTestStep", jobRepository)
-                .<Post, Post>chunk(5, transactionManager)
+                .<Post, BlockedPost>chunk(5, transactionManager)
                 .reader(itemProcessorTestReader)
-                .processor(itemPostNullFilterProcessor)
+                .processor(itemProcessor)
                 .writer(itemProcessorTestWriter)
                 .build();
     }
@@ -83,12 +86,12 @@ public class ItemProcessorTestConfig {
     }
 
     @Bean
-    public ItemWriter<Post> itemProcessorTestWriter() {
-        return items -> items.forEach(post -> {
+    public ItemWriter<BlockedPost> itemProcessorTestWriter() {
+        return items -> items.forEach(blockedPost -> {
             log.info("💀 TERMINATED: [ID:{}] '{}' by {}",
-                    post.getId(),
-                    post.getTitle(),
-                    post.getWriter());
+                    blockedPost.getPostId(),
+                    blockedPost.getTitle(),
+                    blockedPost.getWriter());
         });
     }
 }
