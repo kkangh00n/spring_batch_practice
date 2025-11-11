@@ -64,6 +64,8 @@ public class ItemProcessorTestConfig {
      * ItemProcessor
      * <p>
      * 1-2. Validator를 이용한 필터링
+     *
+     * 2. 데이터 검증을 통한 실패 처리
      */
     @Bean
     public ItemProcessor<Post, Post> itemPostNullFilterProcessor(
@@ -73,7 +75,9 @@ public class ItemProcessorTestConfig {
         ValidatingItemProcessor<Post> validationItemProcessor = new ValidatingItemProcessor<>(
                 filteringValidator);
         //필터링 수행
-        validationItemProcessor.setFilter(true);
+        // true -> 필터링
+        // false -> 실패 처리
+        validationItemProcessor.setFilter(false);
 
         return validationItemProcessor;
     }
