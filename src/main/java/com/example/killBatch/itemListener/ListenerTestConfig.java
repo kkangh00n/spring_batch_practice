@@ -18,9 +18,13 @@ import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
+import org.springframework.batch.core.ItemReadListener;
+import org.springframework.batch.core.ItemProcessListener;
+import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -55,7 +59,10 @@ public class ListenerTestConfig {
             ItemProcessor<Post, Post> listenerTestProcessor,
             ItemWriter<Post> listenerTestWriter,
             StepExecutionListener customStepListener,
-            ChunkListener customChunkListener
+            ChunkListener customChunkListener,
+            ItemReadListener<Post> customItemReadListener,
+            ItemProcessListener<Post, Post> customItemProcessListener,
+            ItemWriteListener<Post> customItemWriteListener
     ) {
         return new StepBuilder("listenerTestStep", jobRepository)
                 .<Post, Post>chunk(2, transactionManager)
@@ -64,6 +71,9 @@ public class ListenerTestConfig {
                 .writer(listenerTestWriter)
                 .listener(customStepListener)
                 .listener(customChunkListener)
+                .listener(customItemReadListener)
+                .listener(customItemProcessListener)
+                .listener(customItemWriteListener)
                 .build();
     }
 
@@ -197,6 +207,96 @@ public class ListenerTestConfig {
                 log.error("    ╭───────────────────────────────────────────────────────────╮");
                 log.error("    │  ❌ CHUNK #{} 실패 (롤백)  ", chunkCount);
                 log.error("    ╰───────────────────────────────────────────────────────────╯");
+            }
+        };
+    }
+
+    /**
+     * ItemReadListener
+     *
+     */
+    @Bean
+    public ItemReadListener<Post> customItemReadListener() {
+        return new ItemReadListener<Post>() {
+            private int readCount = 0;
+
+            @Override
+            public void beforeRead() {
+                readCount++;
+                log.info("      ├─ 📖 Read #{} 시작...", readCount);
+            }
+
+            @Override
+            public void afterRead(Post item) {
+                if (item != null) {
+                    log.info("      ├─ ✓ Read #{} 성공: {}", readCount, item);
+                } else {
+                    log.info("      ├─ ○ Read #{} 완료: 더 이상 읽을 데이터 없음", readCount);
+                }
+            }
+
+            @Override
+            public void onReadError(Exception ex) {
+                log.error("      ├─ ✗ Read #{} 에러: {}", readCount, ex.getMessage());
+            }
+        };
+    }
+
+    /**
+     * ItemProcessListener
+     *
+     */
+    @Bean
+    public ItemProcessListener<Post, Post> customItemProcessListener() {
+        return new ItemProcessListener<Post, Post>() {
+            private int processCount = 0;
+
+            @Override
+            public void beforeProcess(Post item) {
+                processCount++;
+                log.info("      ├─ ⚙️ Process #{} 시작: {}", processCount, item);
+            }
+
+            @Override
+            public void afterProcess(Post item, Post result) {
+                if (result != null) {
+                    log.info("      ├─ ✓ Process #{} 성공: {} → {}", processCount, item, result);
+                } else {
+                    log.info("      ├─ ⊘ Process #{} 필터링됨: {}", processCount, item);
+                }
+            }
+
+            @Override
+            public void onProcessError(Post item, Exception e) {
+                log.error("      ├─ ✗ Process #{} 에러: {} | 원인: {}", processCount, item, e.getMessage());
+            }
+        };
+    }
+
+    /**
+     * ItemWriteListener
+     *
+     */
+    @Bean
+    public ItemWriteListener<Post> customItemWriteListener() {
+        return new ItemWriteListener<Post>() {
+            private int writeCount = 0;
+
+            @Override
+            public void beforeWrite(Chunk<? extends Post> items) {
+                writeCount++;
+                log.info("      ├─ 💾 Write #{} 시작: {}개 아이템", writeCount, items.size());
+            }
+
+            @Override
+            public void afterWrite(Chunk<? extends Post> items) {
+                log.info("      ├─ ✓ Write #{} 성공: {}개 아이템 저장됨", writeCount, items.size());
+            }
+
+            @Override
+            public void onWriteError(Exception exception, Chunk<? extends Post> items) {
+                log.error("      ├─ ✗ Write #{} 에러: {}개 아이템 실패 | 원인: {}",
+                        writeCount, items.size(), exception.getMessage());
             }
         };
     }
