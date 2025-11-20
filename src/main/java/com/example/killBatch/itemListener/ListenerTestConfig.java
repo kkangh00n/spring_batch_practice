@@ -3,7 +3,10 @@ package com.example.killBatch.itemListener;
 import com.example.killBatch.itemProcessor.FilteringValidator;
 import com.example.killBatch.jpaBatch.Post;
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ChunkListener;
@@ -14,17 +17,20 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
+import org.springframework.batch.core.configuration.annotation.JobScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.builder.StepBuilder;
 import org.springframework.batch.item.Chunk;
+import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.core.ItemReadListener;
 import org.springframework.batch.core.ItemProcessListener;
 import org.springframework.batch.core.ItemWriteListener;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -119,17 +125,31 @@ public class ListenerTestConfig {
     /**
      * JobExecutionListener
      *
+     * Job 수준의 ExecutionContext에서 저장된 데이터는 해당 Job에 포함된 Step에서 접근 가능
+     *
+     * 그렇다면 ExecutionContext가 아닌 JobParameters를 사용하면 안되는 걸까?
+     * -> JobParameters는 불변하게 설계되었다!
+     * -> 동일한 JobParameters로 실행한 Job은 항상 동일한 결과를 생성해야 한다.
+     * -> 실행 중간에 JobParameters가 변경된다면, 이를 보장할 수 없다!
+     * -> 그러므로 Job 실행 중에 동적으로 생성되거나 변경되어야 하는 데이터는 ExecutionContext를 통해 관리
      */
     @Bean
     public JobExecutionListener customJobListener() {
         return new JobExecutionListener() {
             @Override
             public void beforeJob(JobExecution jobExecution) {
-                log.info("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
+
+                ExecutionContext executionContext = jobExecution.getExecutionContext();
+                executionContext.put("infiltrationPlan", generateInfiltrationPlan());
+                log.info("-----Job 수준의 ExecutionContext에 데이터 삽입-----");
+
+                log.info(
+                        "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
                 log.info("┃  🚀 JOB 시작: {}  ", jobExecution.getJobInstance().getJobName());
                 log.info("┃  Job ID: {}", jobExecution.getJobId());
                 log.info("┃  Job Parameters: {}", jobExecution.getJobParameters());
-                log.info("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+                log.info(
+                        "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
             }
 
             @Override
@@ -139,12 +159,14 @@ public class ListenerTestConfig {
                         jobExecution.getEndTime()
                 ).toMillis();
 
-                log.info("┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
+                log.info(
+                        "┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓");
                 log.info("┃  ✅ JOB 종료: {}  ", jobExecution.getJobInstance().getJobName());
                 log.info("┃  Status: {}", jobExecution.getStatus());
                 log.info("┃  Exit Status: {}", jobExecution.getExitStatus().getExitCode());
                 log.info("┃  실행 시간: {}ms", executionTime);
-                log.info("┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
+                log.info(
+                        "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛");
             }
         };
     }
@@ -154,25 +176,42 @@ public class ListenerTestConfig {
      *
      */
     @Bean
-    public StepExecutionListener customStepListener() {
+    @JobScope
+    public StepExecutionListener customStepListener(
+            //Job 수준의 ExecutionContext 조회 (Parameter를 통한 조회)
+            @Value("#{jobExecutionContext['infiltrationPlan']}") Map<String, Object> infiltrationPlanParameter
+    ) {
         return new StepExecutionListener() {
             @Override
             public void beforeStep(StepExecution stepExecution) {
-                log.info("  ┌─────────────────────────────────────────────────────────────────────┐");
+
+                //Job 수준의 ExecutionContext 조회 (ExecutionContext 직접 조회)
+                Map<String, Object> infiltrationPlan = (Map<String, Object>) stepExecution.getJobExecution()
+                        .getExecutionContext().get("infiltrationPlan");
+
+                log.info("-----Job 수준의 ExecutionContext에서 데이터 조회-----");
+                log.info("침투 준비 단계: {}", infiltrationPlan.get("targetSystem"));
+                log.info("필요한 도구: {}", infiltrationPlanParameter.get("requiredTools"));
+
+                log.info(
+                        "  ┌─────────────────────────────────────────────────────────────────────┐");
                 log.info("  │  📌 STEP 시작: {}  ", stepExecution.getStepName());
                 log.info("  │  Step Execution ID: {}", stepExecution.getId());
-                log.info("  └─────────────────────────────────────────────────────────────────────┘");
+                log.info(
+                        "  └─────────────────────────────────────────────────────────────────────┘");
             }
 
             @Override
             public ExitStatus afterStep(StepExecution stepExecution) {
-                log.info("  ┌─────────────────────────────────────────────────────────────────────┐");
+                log.info(
+                        "  ┌─────────────────────────────────────────────────────────────────────┐");
                 log.info("  │  ✔️ STEP 종료: {}  ", stepExecution.getStepName());
                 log.info("  │  Status: {}", stepExecution.getStatus());
                 log.info("  │  Read Count: {}", stepExecution.getReadCount());
                 log.info("  │  Write Count: {}", stepExecution.getWriteCount());
                 log.info("  │  Commit Count: {}", stepExecution.getCommitCount());
-                log.info("  └─────────────────────────────────────────────────────────────────────┘");
+                log.info(
+                        "  └─────────────────────────────────────────────────────────────────────┘");
                 return ExitStatus.COMPLETED;
             }
         };
@@ -268,7 +307,8 @@ public class ListenerTestConfig {
 
             @Override
             public void onProcessError(Post item, Exception e) {
-                log.error("      ├─ ✗ Process #{} 에러: {} | 원인: {}", processCount, item, e.getMessage());
+                log.error("      ├─ ✗ Process #{} 에러: {} | 원인: {}", processCount, item,
+                        e.getMessage());
             }
         };
     }
@@ -299,5 +339,31 @@ public class ListenerTestConfig {
                         writeCount, items.size(), exception.getMessage());
             }
         };
+    }
+
+    private Map<String, Object> generateInfiltrationPlan() {
+        List<String> targets = List.of(
+                "판교 서버실", "안산 데이터센터"
+        );
+        List<String> objectives = List.of(
+                "kill -9 실행", "rm -rf 전개", "chmod 000 적용", "/dev/null로 리다이렉션"
+        );
+        List<String> targetData = List.of(
+                "코어 덤프 파일", "시스템 로그", "설정 파일", "백업 데이터"
+        );
+        List<String> requiredTools = List.of(
+                "USB 킬러", "널 바이트 인젝터", "커널 패닉 유발기", "메모리 시퍼너"
+        );
+
+        Random rand = new Random();
+
+        Map<String, Object> infiltrationPlan = new HashMap<>();
+        infiltrationPlan.put("targetSystem", targets.get(rand.nextInt(targets.size())));
+        infiltrationPlan.put("objective", objectives.get(rand.nextInt(objectives.size())));
+        infiltrationPlan.put("targetData", targetData.get(rand.nextInt(targetData.size())));
+        infiltrationPlan.put("requiredTools",
+                requiredTools.get(rand.nextInt(requiredTools.size())));
+
+        return infiltrationPlan;
     }
 }
