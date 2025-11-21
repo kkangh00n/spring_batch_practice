@@ -46,7 +46,10 @@ public class ListenerTestConfig {
     private final JobRepository jobRepository;
     private final PlatformTransactionManager transactionManager;
 
-    private static final List<Post> repository = List.of(new Post(), new Post());
+    private static final List<Post> repository = List.of(
+            new Post(1L, "test", "test", "test"),
+            new Post(2L, "test", "test", "test")
+    );
 
     @Bean
     public Job listenerTestJob(

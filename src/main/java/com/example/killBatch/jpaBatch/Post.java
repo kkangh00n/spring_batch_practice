@@ -8,17 +8,18 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
-import org.hibernate.annotations.BatchSize;
+import lombok.RequiredArgsConstructor;
 
 @Entity
 @Table(name = "posts")
 @Getter
+@RequiredArgsConstructor
 public class Post {
     @Id
-    private Long id;
-    private String title;         // 게시물 제목
-    private String content;       // 게시물 내용
-    private String writer;        // 작성자
+    private final Long id;
+    private final String title;         // 게시물 제목
+    private final String content;       // 게시물 내용
+    private final String writer;        // 작성자
 
     /**
      * JpaPagingItemReader 한계 -> 페이징과 fetch join 함께 사용 자제
@@ -27,5 +28,5 @@ public class Post {
      */
     @OneToMany(mappedBy = "post", fetch = FetchType.EAGER)
 //    @BatchSize(size = 10)
-    private List<Report> reports = new ArrayList<>();
+    private final List<Report> reports = new ArrayList<>();
 }
