@@ -15,6 +15,8 @@ import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.retry.backoff.ExponentialBackOffPolicy;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.transaction.PlatformTransactionManager;
 
 /**
@@ -90,6 +92,19 @@ public class RetryItemWriterTestConfig {
                 .noRetry(NoRetryException.class)
                 .retryLimit(3)
 //                .processorNonTransactional()
+                /**
+                 * 재시도 간격 조정
+                 */
+                // 1초 간격으로 재시도
+//                .backOffPolicy(new FixedBackOffPolicy() {{
+//                    setBackOffPeriod(1000);
+//                }})
+                // 외부 시스템과의 통신 장애일 경우
+                .backOffPolicy(new ExponentialBackOffPolicy() {{
+                    setInitialInterval(1000L); //초기 대기 시간
+                    setMultiplier(2.0);        //대기 시간 증가 배수
+                    setMaxInterval(10000L);    //최대 대기 시간
+                }})
                 .build();
     }
 
