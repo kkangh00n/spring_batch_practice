@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.7'
 	id 'io.spring.dependency-management' version '1.1.7'
+    id 'org.jetbrains.kotlin.jvm'
 }
 
 group = 'com.example'
@@ -30,6 +31,13 @@ dependencies {
     //Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+
+    // Spring Boot Test
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
+    testImplementation 'com.h2database:h2'
 }
 
 tasks.named('test') {
