@@ -35,8 +35,13 @@ public class JobScopeTestBatchConfig {
 
     /**
      * 주의사항
-     * Step에는 @JobScope와 @StepScope를 사용 금지
-     * 고로 아래 방식은 권장하지 않음
+     * Step에는 @StepScope 사용 금지
+     *
+     * 이유
+     * Spring Batch는 Step 실행 전 메타데이터 관리를 위해 Step 빈에 접근해야 한다.
+     * 하지만 @StepScope로 인해서 Step이 활성화되지 않아서 예외가 발생한다.
+     *
+     * 사실은 @JobScope도 사용 금지 (고로 아래 방식은 권장하지 않음)
      *
      * */
     @Bean
